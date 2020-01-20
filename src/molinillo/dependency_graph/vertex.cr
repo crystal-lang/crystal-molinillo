@@ -10,6 +10,18 @@ class Molinillo::DependencyGraph::Vertex(P, R)
     @incoming_edges = Array(Edge(P, R)).new
   end
 
+  def successors
+    outgoing_edges.map &.destination
+  end
+
+  def ==(other)
+    super || (
+      name == other.name &&
+        payload == other.payload &&
+        successors.to_set == other.successors.to_set
+    )
+  end
+
   # Is there a path from `self` to `other` following edges in the
   # dependency graph?
   # @return true iff there is a path following edges within this {#graph}

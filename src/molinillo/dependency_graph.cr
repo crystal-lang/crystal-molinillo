@@ -19,6 +19,20 @@ class Molinillo::DependencyGraph(P, R)
     @log = Log(P, R).new
   end
 
+  # Tags the current state of the dependency as the given tag
+  # @param  [Object] tag an opaque tag for the current state of the graph
+  # @return [Void]
+  def tag(tag : Reference)
+    log.tag(self, tag)
+  end
+
+  # Rewinds the graph to the state tagged as `tag`
+  # @param  [Object] tag the tag to rewind to
+  # @return [Void]
+  def rewind_to(tag)
+    log.rewind_to(self, tag)
+  end
+
   def to_dot
     dot_vertices = [] of String
     dot_edges = [] of String
@@ -39,12 +53,25 @@ class Molinillo::DependencyGraph(P, R)
     dot.join("\n")
   end
 
+  def ==(other)
+    super || begin
+      return false unless vertices.keys.to_set == other.vertices.keys.to_set
+      vertices.each do |name, vertex|
+        other_vertex = other.vertex_named(name)
+        return false unless other_vertex
+        return false unless vertex.payload == other_vertex.payload
+        return false unless other_vertex.successors.to_set == vertex.successors.to_set
+      end
+      true
+    end
+  end
+
   # @param [String] name
   # @param [Object] payload
   # @param [Array<String>] parent_names
   # @param [Object] requirement the requirement that is requiring the child
   # @return [void]
-  def add_child_vertex(name, payload, parent_names, requirement)
+  def add_child_vertex(name : String, payload : P, parent_names : Array(String?), requirement : R)
     root = !(parent_names.delete(nil) || true)
     vertex = add_vertex(name, payload, root)
     # vertex.explicit_requirements << requirement if root
@@ -60,25 +87,25 @@ class Molinillo::DependencyGraph(P, R)
   # @param [String] name
   # @param [Object] payload
   # @return [Vertex] the vertex that was added to `self`
-  def add_vertex(name, payload, root = false)
+  def add_vertex(name : String, payload : P, root : Bool = false)
     log.add_vertex(self, name, payload, root)
   end
 
   # @param [String] name
   # @return [Vertex,nil] the vertex with the given name
-  def vertex_named(name)
+  def vertex_named(name) : Vertex(P, R)?
     vertices[name]?
   end
 
   # @param [String] name
   # @return [Vertex,nil] the vertex with the given name
-  def vertex_named!(name)
+  def vertex_named!(name) : Vertex(P, R)
     vertices[name]
   end
 
   # @param [String] name
   # @return [Vertex,nil] the root vertex with the given name
-  def root_vertex_named(name)
+  def root_vertex_named(name) : Vertex(P, R)?
     vertex = vertex_named(name)
     vertex if vertex && vertex.root
   end
@@ -88,7 +115,7 @@ class Molinillo::DependencyGraph(P, R)
   # @param [Vertex] destination
   # @param [Object] requirement the requirement that this edge represents
   # @return [Edge] the added edge
-  def add_edge(origin, destination, requirement)
+  def add_edge(origin : Vertex(P, R), destination : Vertex(P, R), requirement : R)
     if destination.path_to?(origin)
       # raise CircularDependencyError.new(path(destination, origin))
       raise "tbd"
