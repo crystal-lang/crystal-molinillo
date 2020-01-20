@@ -130,4 +130,8 @@ class Molinillo::DependencyGraph(P, R)
   private def add_edge_no_circular(origin, destination, requirement)
     log.add_edge_no_circular(self, origin.name, destination.name, requirement)
   end
+
+  def inspect
+    "#<Molinillo::DependencyGraph:0x#{object_id.to_s(16)} vertices=#{vertices.size}>"
+  end
 end
