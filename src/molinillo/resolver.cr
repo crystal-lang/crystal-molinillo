@@ -6,10 +6,10 @@ module Molinillo
   # activate, with feedback from the {#specification_provider}
   #
   #
-  class Resolver(P, R, S)
+  class Resolver(R, S)
     # @return [SpecificationProvider] the specification provider used
     #   in the resolution process
-    getter specification_provider : SpecificationProvider(P, R, S)
+    getter specification_provider : SpecificationProvider(R, S)
 
     # @return [UI] the UI module used to communicate back to the user
     #   during the resolution process
@@ -29,12 +29,13 @@ module Molinillo
     #   {#specification_provider} can understand
     # @param [DependencyGraph,nil] base the base dependency graph to which
     #   dependencies should be 'locked'
-    def resolve(requested, base = DependencyGraph(P, R).new)
-      # Resolution.new(specification_provider,
-      #   resolver_ui,
-      #   requested,
-      #   base)
-      #   .resolve
+    def resolve(requested : Array(R), base = DependencyGraph(PosibilitySet(R, S)?, R).new)
+      Resolution(R, S).new(
+        specification_provider,
+        resolver_ui,
+        requested,
+        base)
+        .resolve
     end
   end
 end

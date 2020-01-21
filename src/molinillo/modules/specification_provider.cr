@@ -5,7 +5,7 @@ module Molinillo
   #
   # This module contains the methods that users of Molinillo must to implement,
   # using knowledge of their own model classes.
-  module SpecificationProvider(P, R, S)
+  module SpecificationProvider(R, S)
     # Search for the specifications that match the given dependency.
     # The specifications in the returned array will be considered in reverse
     # order, so the latest version ought to be last.
@@ -39,7 +39,7 @@ module Molinillo
     # @param [Object] spec
     # @return [Boolean] whether `requirement` is satisfied by `spec` in the
     #   context of the current `activated` dependency graph.
-    def requirement_satisfied_by?(requirement : R, activated : DependencyGraph(P, R), spec : S)
+    def requirement_satisfied_by?(requirement : R, activated : DependencyGraph, spec : S)
       true
     end
 
@@ -77,11 +77,11 @@ module Molinillo
     #   resolution process.
     # @param [{String => Array<Conflict>}] conflicts
     # @return [Array<Object>] a sorted copy of `dependencies`.
-    def sort_dependencies(dependencies : R, activated : DependencyGraph(P, R), conflicts)
+    def sort_dependencies(dependencies : Array(R), activated : DependencyGraph, conflicts)
       dependencies.sort_by do |dependency|
         name = name_for(dependency)
         {
-          activated.vertex_named(name).payload ? 0 : 1,
+          activated.vertex_named!(name).payload ? 0 : 1,
           conflicts[name] ? 0 : 1,
         }
       end

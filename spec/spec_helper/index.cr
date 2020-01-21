@@ -3,7 +3,7 @@ module Molinillo
 
   class TestIndex
     getter specs : Hash(String, Array(TestSpecification))
-    include SpecificationProvider(Nil, Nil, Nil)
+    include SpecificationProvider(Gem::Dependency, Nil)
 
     def self.from_fixture(fixture_name)
       new(TestIndex.specs_from_fixture(fixture_name))

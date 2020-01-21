@@ -6,7 +6,8 @@ module Molinillo
   class TestCase
     getter fixture : Fixture
     getter name : String
-    @index : SpecificationProvider(Nil, Nil, Nil)?
+    @index : SpecificationProvider(Gem::Dependency, Nil)?
+    @requested : Array(Gem::Dependency)?
     @result : DependencyGraph(TestSpecification?, TestSpecification?)?
     @@all : Array(TestCase)?
 
@@ -24,10 +25,9 @@ module Molinillo
     end
 
     def requested
-      # @requested ||= @fixture['requested'].map do |(name, reqs)|
-      #   Gem::Dependency.new name.delete("\x01"), reqs.split(',').map(&:chomp)
-      # end
-      @fixture.requested
+      @requested ||= @fixture.requested.map do |(name, reqs)|
+        Gem::Dependency.new name.delete("\x01"), reqs.split(',').map(&.chomp)
+      end
     end
 
     def add_dependencies_to_graph(graph, parent, hash, all_parents = Set(DependencyGraph::Vertex(TestSpecification?, TestSpecification?)).new)
@@ -56,7 +56,7 @@ module Molinillo
     end
 
     def base
-      DependencyGraph(Nil, Nil).new
+      DependencyGraph(Molinillo::Resolver::PosibilitySet(Gem::Dependency, Nil)?, Gem::Dependency).new
     end
 
     def self.all
@@ -65,7 +65,7 @@ module Molinillo
 
     def resolve(index_class)
       index = index_class.new(self.index.specs)
-      resolver = Resolver(Nil, Nil, Nil).new(index, TestUI.new)
+      resolver = Resolver(Gem::Dependency, Nil).new(index, TestUI.new)
       resolver.resolve(requested, base)
     end
 
@@ -73,6 +73,7 @@ module Molinillo
       it name do
         # skip 'does not yet reliably pass' if test_case.ignore?(index_class)
         if fixture.conflicts.any?
+          raise "tbd"
         else
           result = resolve(index_class)
 

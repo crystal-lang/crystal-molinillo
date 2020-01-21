@@ -2,7 +2,32 @@ require "./action"
 
 class Molinillo::DependencyGraph
   class Tag(P, R) < Action(P, R)
-    getter tag : UInt64
+    abstract struct Value
+      def self.new(value : Reference)
+        ReferenceValue.new(value)
+      end
+
+      def self.new(value)
+        OtherValue.new(value)
+      end
+    end
+
+    struct ReferenceValue < Value
+      @value : UInt64
+
+      def initialize(value : Reference)
+        @value = value.object_id
+      end
+    end
+
+    struct OtherValue < Value
+      @value : Symbol
+
+      def initialize(@value)
+      end
+    end
+
+    getter tag : Value
 
     def up(graph)
     end
@@ -10,7 +35,8 @@ class Molinillo::DependencyGraph
     def down(graph)
     end
 
-    def initialize(@tag)
+    def initialize(tag)
+      @tag = Value.new(tag)
     end
   end
 end

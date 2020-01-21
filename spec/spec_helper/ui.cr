@@ -2,6 +2,8 @@ module Molinillo
   class TestUI
     include UI
 
+    @output : IO?
+
     def output
       @output ||= if debug?
                     STDERR

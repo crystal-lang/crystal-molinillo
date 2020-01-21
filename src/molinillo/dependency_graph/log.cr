@@ -6,7 +6,7 @@ class Molinillo::DependencyGraph::Log(P, R)
   @first_action : Action(P, R)?
 
   def tag(graph, tag)
-    push_action(graph, Tag(P, R).new(tag.object_id))
+    push_action(graph, Tag(P, R).new(tag))
   end
 
   def add_vertex(graph, name : String, payload : P, root)
@@ -42,10 +42,11 @@ class Molinillo::DependencyGraph::Log(P, R)
   end
 
   def rewind_to(graph, tag)
+    tag_value = Tag::Value.new(tag)
     loop do
       action = pop!(graph)
       raise "No tag #{tag.inspect} found" unless action
-      break if action.is_a?(Tag(P, R)) && action.tag == tag.object_id
+      break if action.is_a?(Tag(P, R)) && action.tag == tag_value
     end
   end
 

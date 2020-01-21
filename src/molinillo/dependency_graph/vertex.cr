@@ -2,10 +2,12 @@ class Molinillo::DependencyGraph::Vertex(P, R)
   property root = false
   property name : String
   property payload : P
+  getter explicit_requirements : Array(R)
   getter outgoing_edges : Array(Edge(P, R))
   getter incoming_edges : Array(Edge(P, R))
 
   def initialize(@name, @payload : P)
+    @explicit_requirements = Array(R).new
     @outgoing_edges = Array(Edge(P, R)).new
     @incoming_edges = Array(Edge(P, R)).new
   end

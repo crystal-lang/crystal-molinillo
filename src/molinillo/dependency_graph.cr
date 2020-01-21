@@ -22,7 +22,7 @@ class Molinillo::DependencyGraph(P, R)
   # Tags the current state of the dependency as the given tag
   # @param  [Object] tag an opaque tag for the current state of the graph
   # @return [Void]
-  def tag(tag : Reference)
+  def tag(tag : Symbol | Reference)
     log.tag(self, tag)
   end
 

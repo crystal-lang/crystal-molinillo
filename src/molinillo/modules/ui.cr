@@ -52,14 +52,20 @@ module Molinillo
       end
     end
 
+    @debug_mode : Bool?
+
     # Whether or not debug messages should be printed.
     # By default, whether or not the `MOLINILLO_DEBUG` environment variable is
     # set.
     #
     # @return [Boolean]
     def debug?
-      return @debug_mode if defined?(@debug_mode)
-      @debug_mode = ENV["MOLINILLO_DEBUG"]
+      debug_mode = @debug_mode
+      if debug_mode == nil
+        @debug_mode = ENV.has_key?("MOLINILLO_DEBUG")
+      else
+        debug_mode
+      end
     end
   end
 end
