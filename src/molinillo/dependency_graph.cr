@@ -91,6 +91,14 @@ class Molinillo::DependencyGraph(P, R)
     log.add_vertex(self, name, payload, root)
   end
 
+  # Detaches the {#vertex_named} `name` {Vertex} from the graph, recursively
+  # removing any non-root vertices that were orphaned in the process
+  # @param [String] name
+  # @return [Array<Vertex>] the vertices which have been detached
+  def detach_vertex_named(name)
+    log.detach_vertex_named(self, name)
+  end
+
   # @param [String] name
   # @return [Vertex,nil] the vertex with the given name
   def vertex_named(name) : Vertex(P, R)?
@@ -121,6 +129,14 @@ class Molinillo::DependencyGraph(P, R)
       raise "tbd"
     end
     add_edge_no_circular(origin, destination, requirement)
+  end
+
+  # Sets the payload of the vertex with the given name
+  # @param [String] name the name of the vertex
+  # @param [Object] payload the payload
+  # @return [Void]
+  def set_payload(name, payload)
+    log.set_payload(self, name, payload)
   end
 
   # Adds a new {Edge} to the dependency graph without checking for

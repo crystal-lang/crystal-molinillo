@@ -82,7 +82,7 @@ module Molinillo
         name = name_for(dependency)
         {
           activated.vertex_named!(name).payload ? 0 : 1,
-          conflicts[name] ? 0 : 1,
+          conflicts[name]? ? 0 : 1,
         }
       end
     end

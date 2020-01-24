@@ -12,6 +12,14 @@ class Molinillo::DependencyGraph::Vertex(P, R)
     @incoming_edges = Array(Edge(P, R)).new
   end
 
+  # @return [Array<Vertex>] the vertices of {#graph} that have an edge with
+  #   `self` as their {Edge#destination}
+  def predecessors
+    incoming_edges.map &.origin
+  end
+
+  # @return [Array<Vertex>] the vertices of {#graph} that have an edge with
+  #   `self` as their {Edge#origin}
   def successors
     outgoing_edges.map &.destination
   end

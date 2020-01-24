@@ -11,9 +11,9 @@ module Molinillo
   class ResolutionState(R, S)
     property name : String?
     property requirements : Array(R)
-    property activated : DependencyGraph(Resolver::PosibilitySet(R, S)?, R)
+    property activated : DependencyGraph(Resolver::Resolution::PossibilitySet(R, S)?, R)
     property requirement : R?
-    property possibilities : Array(S)
+    property possibilities : Array(Resolver::Resolution::PossibilitySet(R, S))
     property depth : Int32
     property conflicts : Hash(String, Nil)
     property unused_unwind_options : Array(Nil)
@@ -25,8 +25,8 @@ module Molinillo
     # Returns an empty resolution state
     # @return [ResolutionState] an empty state
     def self.empty
-      new(nil, Array(R).new, DependencyGraph(Resolver::PosibilitySet(R, S)?, R).new, nil,
-        Array(S).new, 0, Hash(String, Nil).new, Array(Nil).new)
+      new(nil, Array(R).new, DependencyGraph(Resolver::Resolution::PossibilitySet(R, S)?, R).new, nil,
+        Array(Resolver::Resolution::PossibilitySet(R, S)).new, 0, Hash(String, Nil).new, Array(Nil).new)
     end
   end
 

@@ -6,7 +6,7 @@ module Molinillo
   class TestCase
     getter fixture : Fixture
     getter name : String
-    @index : SpecificationProvider(Gem::Dependency, Nil)?
+    @index : SpecificationProvider(Gem::Dependency, TestSpecification)?
     @requested : Array(Gem::Dependency)?
     @result : DependencyGraph(TestSpecification?, TestSpecification?)?
     @@all : Array(TestCase)?
@@ -56,7 +56,7 @@ module Molinillo
     end
 
     def base
-      DependencyGraph(Molinillo::Resolver::PosibilitySet(Gem::Dependency, Nil)?, Gem::Dependency).new
+      DependencyGraph(Gem::Dependency, Gem::Dependency).new
     end
 
     def self.all
@@ -65,7 +65,7 @@ module Molinillo
 
     def resolve(index_class)
       index = index_class.new(self.index.specs)
-      resolver = Resolver(Gem::Dependency, Nil).new(index, TestUI.new)
+      resolver = Resolver(Gem::Dependency, TestSpecification).new(index, TestUI.new)
       resolver.resolve(requested, base)
     end
 
@@ -73,7 +73,7 @@ module Molinillo
       it name do
         # skip 'does not yet reliably pass' if test_case.ignore?(index_class)
         if fixture.conflicts.any?
-          raise "tbd"
+          raise "tbd: conflicts"
         else
           result = resolve(index_class)
 

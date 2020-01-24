@@ -1,9 +1,11 @@
+require "./specification"
+
 module Molinillo
   FIXTURE_INDEX_DIR = FIXTURE_DIR / "index"
 
   class TestIndex
     getter specs : Hash(String, Array(TestSpecification))
-    include SpecificationProvider(Gem::Dependency, Nil)
+    include SpecificationProvider(Gem::Dependency, TestSpecification)
 
     def self.from_fixture(fixture_name)
       new(TestIndex.specs_from_fixture(fixture_name))
@@ -27,6 +29,18 @@ module Molinillo
     end
 
     def initialize(@specs)
+    end
+
+    def search_for(dependency : R)
+      specs[dependency.name].select do |spec|
+        dependency.requirement.satisfied_by?(spec.version)
+      end
+      # raise "tbd: search_for #{dependency.inspect}"
+    end
+
+    def dependencies_for(specification : S)
+      specification.dependencies
+      # raise "tbd: dependencies_for #{specification.inspect}"
     end
   end
 end
