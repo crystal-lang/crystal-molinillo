@@ -12,6 +12,12 @@ class Molinillo::DependencyGraph::Vertex(P, R)
     @incoming_edges = Array(Edge(P, R)).new
   end
 
+  # @return [Array<Object>] all of the requirements that required
+  #   this vertex
+  def requirements
+    (incoming_edges.map(&.requirement) + explicit_requirements).uniq
+  end
+
   # @return [Array<Vertex>] the vertices of {#graph} that have an edge with
   #   `self` as their {Edge#destination}
   def predecessors

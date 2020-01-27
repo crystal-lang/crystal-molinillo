@@ -5,8 +5,12 @@ module Molinillo
     JSON.mapping(
       name: String,
       version: String,
-      dependencies: {type: Array(Gem::Dependency), converter: DepConverter}
+      dependencies: {type: Array(Gem::Dependency | TestSpecification), converter: DepConverter}
     )
+
+    def to_s(io)
+      io << "#{name} (#{version})"
+    end
   end
 
   module DepConverter
@@ -28,7 +32,7 @@ module Molinillo
 
       deps.map do |name, requirement|
         requirements = requirement.split(',').map(&.chomp)
-        Gem::Dependency.new(name, requirements)
+        Gem::Dependency.new(name, requirements).as(Gem::Dependency | TestSpecification)
       end
     end
   end

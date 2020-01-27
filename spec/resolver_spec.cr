@@ -6,8 +6,8 @@ module Molinillo
   class TestCase
     getter fixture : Fixture
     getter name : String
-    @index : SpecificationProvider(Gem::Dependency, TestSpecification)?
-    @requested : Array(Gem::Dependency)?
+    @index : SpecificationProvider(Gem::Dependency | TestSpecification, TestSpecification)?
+    @requested : Array(Gem::Dependency | TestSpecification)?
     @result : DependencyGraph(TestSpecification?, TestSpecification?)?
     @@all : Array(TestCase)?
 
@@ -26,7 +26,7 @@ module Molinillo
 
     def requested
       @requested ||= @fixture.requested.map do |(name, reqs)|
-        Gem::Dependency.new name.delete("\x01"), reqs.split(',').map(&.chomp)
+        Gem::Dependency.new(name.delete("\x01"), reqs.split(',').map(&.chomp)).as(Gem::Dependency | TestSpecification)
       end
     end
 
@@ -56,7 +56,7 @@ module Molinillo
     end
 
     def base
-      DependencyGraph(Gem::Dependency, Gem::Dependency).new
+      DependencyGraph(Gem::Dependency | TestSpecification, Gem::Dependency | TestSpecification).new
     end
 
     def self.all
@@ -65,7 +65,7 @@ module Molinillo
 
     def resolve(index_class)
       index = index_class.new(self.index.specs)
-      resolver = Resolver(Gem::Dependency, TestSpecification).new(index, TestUI.new)
+      resolver = Resolver(Gem::Dependency | TestSpecification, TestSpecification).new(index, TestUI.new)
       resolver.resolve(requested, base)
     end
 

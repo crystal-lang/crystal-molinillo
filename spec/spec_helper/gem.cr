@@ -6,6 +6,10 @@ module Gem
     def initialize(@name, requirements : Array(String))
       @requirement = Requirement.new(requirements)
     end
+
+    def to_s(io)
+      io << name
+    end
   end
 
   class Requirement
@@ -15,7 +19,15 @@ module Gem
     end
 
     def satisfied_by?(version : String)
-      true
+      requirements.all? do |req|
+        Shards::Versions.matches?(version, req)
+      end
+    end
+
+    def inspect(io)
+      io << '"'
+      io << requirements.join ", "
+      io << '"'
     end
   end
 end

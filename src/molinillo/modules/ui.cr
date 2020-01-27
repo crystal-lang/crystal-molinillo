@@ -48,7 +48,7 @@ module Molinillo
         debug_info = yield
         debug_info = debug_info.inspect unless debug_info.is_a?(String)
         debug_info = debug_info.split("\n").map { |s| ":#{depth.to_s.rjust 4}: #{s}" }
-        output.puts debug_info
+        debug_info.each { |line| output.puts line }
       end
     end
 

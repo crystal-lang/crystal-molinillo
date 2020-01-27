@@ -11,8 +11,8 @@ module Molinillo
         end
 
         # String representation of the possibility set, for debugging
-        def to_s
-          "[#{possibilities.join(", ")}]"
+        def to_s(io)
+          io << "[#{possibilities.join(", ")}]"
         end
 
         # @return [Object] most up-to-date dependency in the possibility set
@@ -40,7 +40,7 @@ module Molinillo
         @base = base
         @states = Array(ResolutionState(R, S)).new
         @iteration_counter = 0
-        # @parents_of = Hash.new { |h, k| h[k] = [] }
+        @parents_of = Hash(R, Array(Int32)).new { |h, k| h[k] = [] of Int32 }
       end
 
       # Resolves the {#original_requested} dependencies into a full dependency
@@ -83,16 +83,19 @@ module Molinillo
       end
 
       def resolve_activated_specs
-        # activated.vertices.each do |_, vertex|
-        #   next unless vertex.payload
+        final = DependencyGraph(S, S).new
+        # puts
+        # puts activated.to_dot
+        activated.vertices.each do |_, vertex|
+          next unless payload = vertex.payload
 
-        #   latest_version = vertex.payload.possibilities.reverse_each.find do |possibility|
-        #     vertex.requirements.all? { |req| requirement_satisfied_by?(req, activated, possibility) }
-        #   end
+          latest_version = payload.possibilities.reverse_each.find do |possibility|
+            vertex.requirements.all? { |req| requirement_satisfied_by?(req, activated, possibility) }
+          end
 
-        #   activated.set_payload(vertex.name, latest_version)
-        # end
-        activated
+          final.add_vertex(vertex.name, latest_version.not_nil!, vertex.root)
+        end
+        final
       end
 
       include Molinillo::Delegates::ResolutionState(R, S)
@@ -104,7 +107,7 @@ module Molinillo
         if possibility
           attempt_to_activate
         else
-          raise "tbd"
+          raise "tbd @ process_topmost_state"
           # create_conflict
           # unwind_for_conflict
         end
@@ -144,8 +147,8 @@ module Molinillo
       # @param [Integer] depth the depth of the {#states} stack
       # @param [Proc] block a block that yields a {#to_s}
       # @return [void]
-      def debug(depth = 0, &block)
-        resolver_ui.debug(depth, &block)
+      def debug(depth = 0)
+        resolver_ui.debug(depth) { yield }
       end
 
       # Attempts to activate the current {#possibility}
@@ -166,7 +169,7 @@ module Molinillo
             possibility.possibilities << latest if latest
             # create_conflict
             # unwind_for_conflict
-            raise "tbd"
+            raise "tbd @ attempt_to_activate"
           else
             activate_new_spec
           end
@@ -185,7 +188,7 @@ module Molinillo
           # create_conflict
           debug(depth) { "Unsatisfied by existing spec (#{vertex.payload})" }
           # unwind_for_conflict
-          raise "Tbd"
+          raise "tbd @ attempt_to_filter_existing_spec"
         end
       end
 
