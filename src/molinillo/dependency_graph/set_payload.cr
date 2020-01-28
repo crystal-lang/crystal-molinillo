@@ -16,7 +16,7 @@ class Molinillo::DependencyGraph
     end
 
     def down(graph)
-      graph.vertex_named(name).payload = @old_payload
+      graph.vertex_named!(name).payload = @old_payload
     end
   end
 end

@@ -5,6 +5,13 @@ require "./dependency_graph/log"
 require "./dependency_graph/vertex"
 
 class Molinillo::DependencyGraph(P, R)
+  # Enumerates through the vertices of the graph.
+  # @return [Array<Vertex>] The graph's vertices.
+  def each
+    # return vertices.values.each unless block_given?
+    vertices.values.each { |v| yield v }
+  end
+
   getter log : Log(P, R)
   getter vertices : Hash(String, Vertex(P, R))
 
@@ -74,11 +81,10 @@ class Molinillo::DependencyGraph(P, R)
   def add_child_vertex(name : String, payload : P, parent_names : Array(String?), requirement : R)
     root = !(parent_names.delete(nil) || true)
     vertex = add_vertex(name, payload, root)
-    # vertex.explicit_requirements << requirement if root
+    vertex.explicit_requirements << requirement if root
     parent_names.each do |parent_name|
-      if parent_vertex = vertex_named(parent_name)
-        add_edge(parent_vertex, vertex, requirement)
-      end
+      parent_vertex = vertex_named!(parent_name)
+      add_edge(parent_vertex, vertex, requirement)
     end
     vertex
   end
@@ -126,7 +132,7 @@ class Molinillo::DependencyGraph(P, R)
   def add_edge(origin : Vertex(P, R), destination : Vertex(P, R), requirement : R)
     if destination.path_to?(origin)
       # raise CircularDependencyError.new(path(destination, origin))
-      raise "tbd"
+      raise "tbd" # TODO
     end
     add_edge_no_circular(origin, destination, requirement)
   end

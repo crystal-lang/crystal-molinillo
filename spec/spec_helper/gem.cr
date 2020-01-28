@@ -7,6 +7,10 @@ module Gem
       @requirement = Requirement.new(requirements)
     end
 
+    def prerelease?
+      requirement.prerelease?
+    end
+
     def to_s(io)
       io << name
     end
@@ -22,6 +26,10 @@ module Gem
       requirements.all? do |req|
         Shards::Versions.matches?(version, req)
       end
+    end
+
+    def prerelease?
+      requirements.any? { |r| Shards::Versions.prerelease?(r) }
     end
 
     def inspect(io)

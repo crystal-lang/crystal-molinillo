@@ -7,7 +7,7 @@ class Molinillo::DependencyGraph
         ReferenceValue.new(value)
       end
 
-      def self.new(value)
+      def self.new(value : Symbol)
         OtherValue.new(value)
       end
     end

@@ -11,6 +11,10 @@ module Molinillo
     def to_s(io)
       io << "#{name} (#{version})"
     end
+
+    def prerelease?
+      Shards::Versions.prerelease?(version)
+    end
   end
 
   module DepConverter

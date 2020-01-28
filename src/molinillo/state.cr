@@ -11,12 +11,12 @@ module Molinillo
   class ResolutionState(R, S)
     property name : String?
     property requirements : Array(R)
-    property activated : DependencyGraph(Resolver::Resolution::PossibilitySet(R, S)?, R)
+    property activated : DependencyGraph(Resolver::Resolution::PossibilitySet(R, S)? | S, R)
     property requirement : R?
     property possibilities : Array(Resolver::Resolution::PossibilitySet(R, S))
     property depth : Int32
-    property conflicts : Hash(String, Nil)
-    property unused_unwind_options : Array(Nil)
+    property conflicts : Hash(String, Resolver::Resolution::Conflict(R, S))
+    property unused_unwind_options : Array(Resolver::Resolution::UnwindDetails(R, S))
 
     def initialize(@name, @requirements, @activated, @requirement,
                    @possibilities, @depth, @conflicts, @unused_unwind_options)
@@ -25,8 +25,8 @@ module Molinillo
     # Returns an empty resolution state
     # @return [ResolutionState] an empty state
     def self.empty
-      new(nil, Array(R).new, DependencyGraph(Resolver::Resolution::PossibilitySet(R, S)?, R).new, nil,
-        Array(Resolver::Resolution::PossibilitySet(R, S)).new, 0, Hash(String, Nil).new, Array(Nil).new)
+      new(nil, Array(R).new, DependencyGraph(Resolver::Resolution::PossibilitySet(R, S)? | S, R).new, nil,
+        Array(Resolver::Resolution::PossibilitySet(R, S)).new, 0, Hash(String, Resolver::Resolution::Conflict(R, S)).new, Array(Resolver::Resolution::UnwindDetails(R, S)).new)
     end
   end
 
@@ -37,12 +37,17 @@ module Molinillo
     # @return [PossibilityState] a state with a single possibility,
     #  the possibility that was removed from `self`
     def pop_possibility_state
+      new_pos = if possibilities.size > 0
+                  [possibilities.pop]
+                else
+                  [] of Resolver::Resolution::PossibilitySet(R, S)
+                end
       PossibilityState(R, S).new(
         name,
         requirements.dup,
         activated,
         requirement,
-        [possibilities.pop],
+        new_pos,
         depth + 1,
         conflicts.dup,
         unused_unwind_options.dup

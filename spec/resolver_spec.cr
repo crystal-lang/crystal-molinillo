@@ -30,10 +30,10 @@ module Molinillo
       end
     end
 
-    def add_dependencies_to_graph(graph, parent, hash, all_parents = Set(DependencyGraph::Vertex(TestSpecification?, TestSpecification?)).new)
+    def add_dependencies_to_graph(graph : DependencyGraph(P, P), parent, hash, all_parents = Set(DependencyGraph::Vertex(P, P)).new) forall P
       name = hash.name
       version = hash.version # Gem::Version.new(hash['version'])
-      dependency = index.specs[name].find { |s| s.version == version }
+      dependency = index.specs[name].find { |s| Shards::Versions.compare(s.version, version) == 0 }.not_nil!
       vertex = if parent
                  graph.add_vertex(name, dependency).tap do |v|
                    graph.add_edge(parent, v, dependency)
@@ -56,7 +56,11 @@ module Molinillo
     end
 
     def base
-      DependencyGraph(Gem::Dependency | TestSpecification, Gem::Dependency | TestSpecification).new
+      @fixture.base.reduce(DependencyGraph(Gem::Dependency | TestSpecification, Gem::Dependency | TestSpecification).new) do |graph, r|
+        graph.tap do |g|
+          add_dependencies_to_graph(g, nil, r)
+        end
+      end
     end
 
     def self.all

@@ -35,6 +35,20 @@ module Molinillo
     def initialize(@specs)
     end
 
+    def requirement_satisfied_by?(requirement, activated, spec)
+      if Shards::Versions.prerelease?(spec.version) && !requirement.prerelease?
+        vertex = activated.vertex_named!(spec.name)
+        return false if vertex.requirements.none?(&.prerelease?)
+      end
+
+      case requirement
+      when TestSpecification
+        requirement.version == spec.version
+      when Gem::Dependency
+        requirement.requirement.satisfied_by?(spec.version)
+      end
+    end
+
     def search_for(dependency : R)
       case dependency
       when Gem::Dependency
@@ -44,6 +58,10 @@ module Molinillo
       else
         raise "BUG: Unexpected dependency type: #{dependency}"
       end
+    end
+
+    def name_for(dependency)
+      dependency.name
     end
 
     def dependencies_for(specification : S)

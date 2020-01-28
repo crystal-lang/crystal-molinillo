@@ -38,10 +38,21 @@ class Molinillo::DependencyGraph::Vertex(P, R)
     )
   end
 
+  def_hash @name
+
   # Is there a path from `self` to `other` following edges in the
   # dependency graph?
   # @return true iff there is a path following edges within this {#graph}
   def path_to?(other)
-    false
+    _path_to?(other)
+  end
+
+  # @param [Vertex] other the vertex to check if there's a path to
+  # @param [Set<Vertex>] visited the vertices of {#graph} that have been visited
+  # @return [Boolean] whether there is a path to `other` from `self`
+  protected def _path_to?(other, visited = Set(self).new)
+    return false unless visited.add?(self)
+    return true if self == other
+    successors.any? { |v| v._path_to?(other, visited) }
   end
 end
