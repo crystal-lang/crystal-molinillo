@@ -40,6 +40,10 @@ class Molinillo::DependencyGraph(P, R)
     log.rewind_to(self, tag)
   end
 
+  def inspect
+    "#<Molinillo::DependencyGraph:0x#{object_id.to_s(16)} vertices=#{vertices.size}>"
+  end
+
   def to_dot
     dot_vertices = [] of String
     dot_edges = [] of String
@@ -131,7 +135,7 @@ class Molinillo::DependencyGraph(P, R)
   # @return [Edge] the added edge
   def add_edge(origin : Vertex(P, R), destination : Vertex(P, R), requirement : R)
     if destination.path_to?(origin)
-      # raise CircularDependencyError.new(path(destination, origin))
+      raise CircularDependencyError(P, R).new(path(destination, origin))
       raise "tbd" # TODO
     end
     add_edge_no_circular(origin, destination, requirement)
@@ -153,7 +157,35 @@ class Molinillo::DependencyGraph(P, R)
     log.add_edge_no_circular(self, origin.name, destination.name, requirement)
   end
 
-  def inspect
-    "#<Molinillo::DependencyGraph:0x#{object_id.to_s(16)} vertices=#{vertices.size}>"
+  # Returns the path between two vertices
+  # @raise [ArgumentError] if there is no path between the vertices
+  # @param [Vertex] from
+  # @param [Vertex] to
+  # @return [Array<Vertex>] the shortest path from `from` to `to`
+  def path(from, to)
+    distances = Hash(String, Int32).new(vertices.size + 1)
+    distances[from.name] = 0
+    predecessors = {} of Vertex(P, R) => Vertex(P, R)
+    each do |vertex|
+      vertex.successors.each do |successor|
+        if distances[successor.name] > distances[vertex.name] + 1
+          distances[successor.name] = distances[vertex.name] + 1
+          predecessors[successor] = vertex
+        end
+      end
+    end
+
+    path = [to]
+    while before = predecessors[to]
+      path << before
+      to = before
+      break if to == from
+    end
+
+    unless path.last == from
+      raise ArgumentError.new("There is no path from #{from.name} to #{to.name}")
+    end
+
+    path.reverse
   end
 end

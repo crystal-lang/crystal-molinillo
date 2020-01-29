@@ -64,7 +64,7 @@ module Molinillo
       # @yield
       private def with_no_such_dependency_error_handling
         yield
-      rescue error # TODO : NoSuchDependencyError
+      rescue error : NoSuchDependencyError
         if state
           # TODO
           # vertex = activated.vertex_named(name_for(error.dependency))

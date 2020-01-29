@@ -9,6 +9,7 @@ module Molinillo
     @index : SpecificationProvider(Gem::Dependency | TestSpecification, TestSpecification)?
     @requested : Array(Gem::Dependency | TestSpecification)?
     @result : DependencyGraph(TestSpecification?, TestSpecification?)?
+    @conflicts : Set(String)?
     @@all : Array(TestCase)?
 
     def self.from_fixture(fixture_path)
@@ -63,6 +64,10 @@ module Molinillo
       end
     end
 
+    def conflicts
+      @conflicts ||= @fixture.conflicts.to_set
+    end
+
     def self.all
       @@all ||= Dir.glob(FIXTURE_CASE_DIR.to_s + "**/*.json").map { |fixture| TestCase.from_fixture(fixture) }
     end
@@ -77,7 +82,16 @@ module Molinillo
       it name do
         # skip 'does not yet reliably pass' if test_case.ignore?(index_class)
         if fixture.conflicts.any?
-          raise "tbd: conflicts"
+          error = expect_raises(ResolverError) { resolve(index_class) }
+          names = case error
+                  when CircularDependencyError
+                    error.vertices.map &.name
+                  when VersionConflict
+                    error.conflicts.keys
+                  else
+                    fail "Unexpected error type: #{error}"
+                  end.to_set
+          names.should eq(self.conflicts)
         else
           result = resolve(index_class)
 

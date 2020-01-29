@@ -146,11 +146,20 @@ module Molinillo
         end
       end
 
+      # @return [SpecificationProvider] the provider that knows about
+      #   dependencies, requirements, specifications, versions, etc.
       getter specification_provider : SpecificationProvider(R, S)
+
+      # @return [UI] the UI that knows how to communicate feedback about the
+      #   resolution process back to the user
       getter resolver_ui : UI
+
+      # @return [DependencyGraph] the base dependency graph to which
+      #   dependencies should be 'locked'
       getter base : DependencyGraph(R, R)
+
+      # @return [Array] the dependencies that were explicitly required
       getter original_requested : Array(R)
-      private getter states : Array(ResolutionState(R, S))
 
       # Initializes a new resolution.
       # @param [SpecificationProvider] specification_provider
@@ -196,6 +205,16 @@ module Molinillo
         end_resolution
       end
 
+      # @return [Integer] the number of resolver iterations in between calls to
+      #   {#resolver_ui}'s {UI#indicate_progress} method
+      private property iteration_rate : Int32?
+
+      # @return [Time] the time at which resolution began
+      private property started_at : Time?
+
+      # @return [Array<ResolutionState>] the stack of states for the resolution
+      private getter states : Array(ResolutionState(R, S))
+
       # Sets up the resolution process
       # @return [void]
       private def start_resolution
@@ -207,10 +226,7 @@ module Molinillo
         resolver_ui.before_resolution
       end
 
-      def resolve_activated_specs
-        # final = DependencyGraph(S, S).new
-        # puts
-
+      private def resolve_activated_specs
         activated.vertices.each do |_, vertex|
           next unless payload = vertex.payload
 
@@ -219,21 +235,20 @@ module Molinillo
           end
 
           activated.set_payload(vertex.name, latest_version)
-          # final.add_vertex(vertex.name, latest_version.not_nil!, vertex.root)
         end
         activated
       end
 
       # Ends the resolution process
       # @return [void]
-      def end_resolution
+      private def end_resolution
         resolver_ui.after_resolution
         debug do
           "Finished resolution (#{@iteration_counter} steps) " \
           "(Took #{(ended_at = Time.local) - @started_at.not_nil!} seconds) (#{ended_at})"
         end
-        # debug { "Unactivated: " + Hash[activated.vertices.reject { |_n, v| v.payload }].keys.join(", ") } if state
-        # debug { "Activated: " + Hash[activated.vertices.select { |_n, v| v.payload }].keys.join(", ") } if state
+        debug { "Unactivated: " + activated.vertices.reject { |_n, v| v.payload }.keys.join(", ") } if state
+        debug { "Activated: " + activated.vertices.select { |_n, v| v.payload }.keys.join(", ") } if state
       end
 
       include Molinillo::Delegates::ResolutionState(R, S)
@@ -241,38 +256,38 @@ module Molinillo
 
       # Processes the topmost available {RequirementState} on the stack
       # @return [void]
-      def process_topmost_state
+      private def process_topmost_state
         if possibilities.last?
           attempt_to_activate
         else
           create_conflict
           unwind_for_conflict
         end
-      rescue underlying_error # : CircularDependencyError
+      rescue underlying_error : CircularDependencyError
         create_conflict(underlying_error)
         unwind_for_conflict
       end
 
       # @return [Object] the current possibility that the resolution is trying
       #   to activate
-      def possibility
+      private def possibility
         possibilities.last
       end
 
       # @return [RequirementState] the current state the resolution is
       #   operating upon
-      def state
+      private def state
         states.last?
       end
 
-      def state!
+      private def state!
         states.last
       end
 
       # Creates and pushes the initial state for the resolution, based upon the
       # {#requested} dependencies
       # @return [void]
-      def push_initial_state
+      private def push_initial_state
         graph = DependencyGraph(PossibilitySet(R, S) | S | Nil, R).new.tap do |dg|
           original_requested.each do |requested|
             vertex = dg.add_vertex(name_for(requested), nil, true)
@@ -286,7 +301,7 @@ module Molinillo
 
       # Unwinds the states stack because a conflict has been encountered
       # @return [void]
-      def unwind_for_conflict
+      private def unwind_for_conflict
         details_for_unwind = build_details_for_unwind
         unwind_options = unused_unwind_options
         debug(depth) { "Unwinding for conflict: #{requirement} to #{details_for_unwind.state_index / 2}" }
@@ -306,15 +321,15 @@ module Molinillo
       # Raises a VersionConflict error, or any underlying error, if there is no
       # current state
       # @return [void]
-      def raise_error_unless_state(conflicts)
+      private def raise_error_unless_state(conflicts)
         return if state
 
-        error = conflicts.values.map(&.underlying_error).compact.first
-        raise error || "VersionConflict.new(conflicts, specification_provider)"
+        error = conflicts.values.map(&.underlying_error).compact.first?
+        raise error || VersionConflict(R, S).new(conflicts, specification_provider)
       end
 
       # @return [UnwindDetails] Details of the nearest index to which we could unwind
-      def build_details_for_unwind
+      private def build_details_for_unwind
         # Get the possible unwinds for the current conflict
         current_conflict = conflicts[name]
         binding_requirements = binding_requirements_for_conflict(current_conflict)
@@ -349,7 +364,7 @@ module Molinillo
       # @param [Array<Object>] binding_requirements array of requirements that combine to create a conflict
       # @return [Array<UnwindDetails>] array of UnwindDetails that have a chance
       #    of resolving the passed requirements
-      def unwind_options_for_requirements(binding_requirements)
+      private def unwind_options_for_requirements(binding_requirements)
         unwind_details = [] of UnwindDetails(R, S)
 
         trees = [] of Array(R)
@@ -417,7 +432,7 @@ module Molinillo
       # @param [Array] binding_requirements array of requirements
       # @return [Boolean] whether or not the given state has any possibilities
       #    that could satisfy the given requirements
-      def conflict_fixing_possibilities?(state, binding_requirements)
+      private def conflict_fixing_possibilities?(state, binding_requirements)
         return false unless state
 
         state.possibilities.any? do |possibility_set|
@@ -432,7 +447,7 @@ module Molinillo
       # @param [UnwindDetails] unwind_details details of the conflict just
       #   unwound from
       # @return [void]
-      def filter_possibilities_after_unwind(unwind_details)
+      private def filter_possibilities_after_unwind(unwind_details)
         return unless state && !state!.possibilities.empty?
 
         if unwind_details.unwinding_to_primary_requirement?
@@ -446,7 +461,7 @@ module Molinillo
       # the requirements in the conflict we've just rewound from
       # @param [UnwindDetails] unwind_details details of the conflict just unwound from
       # @return [void]
-      def filter_possibilities_for_primary_unwind(unwind_details)
+      private def filter_possibilities_for_primary_unwind(unwind_details)
         unwinds_to_state = unused_unwind_options.select { |uw| uw.state_index == unwind_details.state_index }
         unwinds_to_state << unwind_details
         unwind_requirement_sets = unwinds_to_state.map(&.conflicting_requirements)
@@ -464,7 +479,7 @@ module Molinillo
       # @param [Array] requirements an array of requirements
       # @return [Boolean] whether the possibility satisfies all of the
       #    given requirements
-      def possibility_satisfies_requirements?(possibility, requirements)
+      private def possibility_satisfies_requirements?(possibility, requirements)
         name = name_for(possibility)
 
         activated.tag(:swap)
@@ -479,7 +494,7 @@ module Molinillo
       # create a requirement in the conflict we've just rewound from
       # @param [UnwindDetails] unwind_details details of the conflict just unwound from
       # @return [void]
-      def filter_possibilities_for_parent_unwind(unwind_details)
+      private def filter_possibilities_for_parent_unwind(unwind_details)
         unwinds_to_state = unused_unwind_options.select { |uw| uw.state_index == unwind_details.state_index }
         unwinds_to_state << unwind_details
 
@@ -505,7 +520,7 @@ module Molinillo
       # @param [Conflict] conflict
       # @return [Array] minimal array of requirements that would cause the passed
       #    conflict to occur.
-      def binding_requirements_for_conflict(conflict)
+      private def binding_requirements_for_conflict(conflict)
         return [conflict.requirement] if conflict.possibility.nil?
 
         possible_binding_requirements = conflict.requirements.values.flatten.uniq
@@ -548,7 +563,7 @@ module Molinillo
       # @param [Array] possibilities array of possibilities the requirements will be used to filter
       # @return [Boolean] whether or not the given requirement is required to filter
       #    out all elements of the array of possibilities.
-      def binding_requirement_in_set?(requirement, possible_binding_requirements, possibilities)
+      private def binding_requirement_in_set?(requirement, possible_binding_requirements, possibilities)
         possibilities.any? do |poss|
           possibility_satisfies_requirements?(poss, possible_binding_requirements - [requirement])
         end
@@ -557,7 +572,7 @@ module Molinillo
       # @param [Object] requirement
       # @return [Object] the requirement that led to `requirement` being added
       #   to the list of requirements.
-      def parent_of(requirement)
+      private def parent_of(requirement)
         return unless requirement
         return unless index = @parents_of[requirement].last?
         return unless parent_state = @states[index]
@@ -567,7 +582,7 @@ module Molinillo
       # @param [String] name
       # @return [Object] the requirement that led to a version of a possibility
       #   with the given name being activated.
-      def requirement_for_existing_name(name)
+      private def requirement_for_existing_name(name)
         return nil unless vertex = activated.vertex_named(name)
         return nil unless vertex.payload
         states.find { |s| s.name == name }.not_nil!.requirement
@@ -576,7 +591,7 @@ module Molinillo
       # @param [Object] requirement
       # @return [ResolutionState] the state whose `requirement` is the given
       #   `requirement`.
-      def find_state_for(requirement)
+      private def find_state_for(requirement)
         return nil unless requirement
         states.find { |i| requirement == i.requirement }
       end
@@ -584,7 +599,7 @@ module Molinillo
       # @param [Object] underlying_error
       # @return [Conflict] a {Conflict} that reflects the failure to activate
       #   the {#possibility} in conjunction with the current {#state}
-      def create_conflict(underlying_error = nil)
+      private def create_conflict(underlying_error = nil)
         vertex = activated.vertex_named!(name)
         locked_requirement = locked_requirement_named(name)
 
@@ -615,7 +630,7 @@ module Molinillo
 
       # @return [Array<Array<Object>>] The different requirement
       #   trees that led to every requirement for the current spec.
-      def requirement_trees
+      private def requirement_trees
         vertex = activated.vertex_named!(name)
         vertex.requirements.map { |r| requirement_tree_for(r) }
       end
@@ -623,7 +638,7 @@ module Molinillo
       # @param [Object] requirement
       # @return [Array<Object>] the list of requirements that led to
       #   `requirement` being required.
-      def requirement_tree_for(requirement)
+      private def requirement_tree_for(requirement)
         tree = [] of R
         while requirement
           tree.unshift(requirement)
@@ -633,7 +648,6 @@ module Molinillo
       end
 
       @progress_rate : Float64?
-      property iteration_rate : Int32?
 
       # Indicates progress roughly once every second
       # @return [void]
@@ -655,13 +669,13 @@ module Molinillo
       # @param [Integer] depth the depth of the {#states} stack
       # @param [Proc] block a block that yields a {#to_s}
       # @return [void]
-      def debug(depth = 0)
+      private def debug(depth = 0)
         resolver_ui.debug(depth) { yield }
       end
 
       # Attempts to activate the current {#possibility}
       # @return [void]
-      def attempt_to_activate
+      private def attempt_to_activate
         debug(depth) { "Attempting to activate " + possibility.to_s }
         existing_vertex = activated.vertex_named!(name)
         if existing_vertex.payload
@@ -685,7 +699,7 @@ module Molinillo
 
       # Attempts to update the existing vertex's `PossibilitySet` with a filtered version
       # @return [void]
-      def attempt_to_filter_existing_spec(vertex)
+      private def attempt_to_filter_existing_spec(vertex)
         filtered_set = filtered_possibility_set(vertex)
         if !filtered_set.possibilities.empty?
           activated.set_payload(name.not_nil!, filtered_set)
@@ -702,7 +716,7 @@ module Molinillo
       # current state's `requirement`
       # @param [Object] vertex existing vertex
       # @return [PossibilitySet] filtered possibility set
-      def filtered_possibility_set(vertex)
+      private def filtered_possibility_set(vertex)
         payload = check_possibility_set(vertex)
         PossibilitySet(R, S).new(payload.dependencies, payload.possibilities & possibility.possibilities)
       end
@@ -710,7 +724,7 @@ module Molinillo
       # @param [String] requirement_name the spec name to search for
       # @return [Object] the locked spec named `requirement_name`, if one
       #   is found on {#base}
-      def locked_requirement_named(requirement_name)
+      private def locked_requirement_named(requirement_name)
         vertex = base.vertex_named(requirement_name)
         vertex && vertex.payload
       end
@@ -718,7 +732,7 @@ module Molinillo
       # Add the current {#possibility} to the dependency graph of the current
       # {#state}
       # @return [void]
-      def activate_new_spec
+      private def activate_new_spec
         conflicts.delete(name)
         debug(depth) { "Activated #{name} at #{possibility}" }
         activated.set_payload(name.not_nil!, possibility)
@@ -729,7 +743,7 @@ module Molinillo
       # @param [Object] possibility_set the PossibilitySet that has just been
       #   activated
       # @return [void]
-      def require_nested_dependencies_for(possibility_set)
+      private def require_nested_dependencies_for(possibility_set)
         nested_dependencies = dependencies_for(possibility_set.latest_version)
         debug(depth) { "Requiring nested dependencies (#{nested_dependencies.join(", ")})" }
         nested_dependencies.each do |d|
@@ -748,7 +762,7 @@ module Molinillo
       # @param [Boolean] requires_sort
       # @param [Object] new_activated
       # @return [void]
-      def push_state_for_requirements(new_requirements, requires_sort = true, new_activated = activated)
+      private def push_state_for_requirements(new_requirements, requires_sort = true, new_activated = activated)
         new_requirements = sort_dependencies(new_requirements.uniq, new_activated, conflicts) if requires_sort
         new_requirement = nil
         loop do
@@ -768,7 +782,7 @@ module Molinillo
       # @param [Object] requirement the proposed requirement
       # @param [Object] activated
       # @return [Array] possibilities
-      def possibilities_for_requirement(requirement, activated = self.activated)
+      private def possibilities_for_requirement(requirement, activated = self.activated)
         return [] of PossibilitySet(R, S) unless requirement
         if locked_requirement_named(name_for(requirement))
           return locked_requirement_possibility_set(requirement, activated)
@@ -780,7 +794,7 @@ module Molinillo
       # @param [Object] requirement the proposed requirement
       # @param [Object] activated
       # @return [Array] possibility set containing only the locked requirement, if any
-      def locked_requirement_possibility_set(requirement, activated = self.activated)
+      private def locked_requirement_possibility_set(requirement, activated = self.activated)
         all_possibilities = search_for(requirement)
         locked_requirement = locked_requirement_named(name_for(requirement)).not_nil!
 
@@ -799,7 +813,7 @@ module Molinillo
       # and are contiguous.
       # @param [Array] possibilities an array of possibilities
       # @return [Array<PossibilitySet>] an array of possibility sets
-      def group_possibilities(possibilities)
+      private def group_possibilities(possibilities)
         possibility_sets = [] of PossibilitySet(R, S)
         current_possibility_set = nil
 
@@ -824,7 +838,7 @@ module Molinillo
       # resolving the remaining requirements.
       # @param [DependencyState] state
       # @return [void]
-      def handle_missing_or_push_dependency_state(state)
+      private def handle_missing_or_push_dependency_state(state)
         if (req = state.requirement) && state.possibilities.empty? && allow_missing?(req)
           state.activated.detach_vertex_named(state.name.not_nil!)
           push_state_for_requirements(state.requirements.dup, false, state.activated)
@@ -833,7 +847,7 @@ module Molinillo
         end
       end
 
-      def check_possibility_set(vertex)
+      private def check_possibility_set(vertex)
         payload = vertex.payload
         raise "BUG: unexpected payload: #{payload}" unless payload.is_a?(PossibilitySet)
         payload

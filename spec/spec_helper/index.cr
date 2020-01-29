@@ -22,13 +22,6 @@ module Molinillo
             specs.sort! { |a, b| Shards::Versions.compare(b.version, a.version) }
           end
         end
-        # JSON.load(fixture).reduce(Hash.new([])) do |specs_by_name, (name, versions)|
-        #   specs_by_name.tap do |specs|
-        #     specs[name] = versions.map { |s| TestSpecification.new s }.sort_by(&:version)
-        #   end
-        # end
-
-
       end
     end
 
@@ -52,7 +45,7 @@ module Molinillo
     def search_for(dependency : R)
       case dependency
       when Gem::Dependency
-        specs[dependency.name].select do |spec|
+        specs.fetch(dependency.name) { Array(TestSpecification).new }.select do |spec|
           dependency.requirement.satisfied_by?(spec.version)
         end
       else
