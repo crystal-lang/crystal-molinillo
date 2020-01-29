@@ -11,10 +11,6 @@ class Molinillo::DependencyGraph
     def initialize(@name, @payload : P, @root)
     end
 
-    def self.action_name
-      :add_vertex
-    end
-
     def up(graph)
       if existing = graph.vertices[name]?
         @existing = {payload: existing.payload, root: existing.root}
