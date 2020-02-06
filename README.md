@@ -1,6 +1,6 @@
 # crystal-molinillo
 
-TODO: Write a description here
+A port of [Molinillo](https://github.com/CocoaPods/Molinillo/) (generic dependency resolution algorithm) to [Crystal](https://crystal-lang.org)
 
 ## Installation
 
@@ -8,8 +8,8 @@ TODO: Write a description here
 
    ```yaml
    dependencies:
-     crystal-molinillo:
-       github: your-github-user/crystal-molinillo
+     molinillo:
+       github: crystal-lang/crystal-molinillo
    ```
 
 2. Run `shards install`
@@ -17,7 +17,7 @@ TODO: Write a description here
 ## Usage
 
 ```crystal
-require "crystal-molinillo"
+require "molinillo"
 ```
 
 TODO: Write usage instructions here
@@ -28,7 +28,7 @@ TODO: Write development instructions here
 
 ## Contributing
 
-1. Fork it (<https://github.com/your-github-user/crystal-molinillo/fork>)
+1. Fork it (<https://github.com/crystal-lang/crystal-molinillo/fork>)
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
