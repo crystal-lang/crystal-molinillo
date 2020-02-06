@@ -36,4 +36,4 @@ TODO: Write development instructions here
 
 ## Contributors
 
-- [Juan Wajnerman](https://github.com/your-github-user) - creator and maintainer
+- [Juan Wajnerman](https://github.com/waj) - creator and maintainer
