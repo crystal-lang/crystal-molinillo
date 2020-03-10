@@ -59,7 +59,6 @@ module Molinillo
 
     def dependencies_for(specification : S)
       specification.dependencies
-      # raise "tbd: dependencies_for #{specification.inspect}"
     end
   end
 end

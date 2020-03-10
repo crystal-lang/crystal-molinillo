@@ -136,7 +136,6 @@ class Molinillo::DependencyGraph(P, R)
   def add_edge(origin : Vertex(P, R), destination : Vertex(P, R), requirement : R)
     if destination.path_to?(origin)
       raise CircularDependencyError(P, R).new(path(destination, origin))
-      raise "tbd" # TODO
     end
     add_edge_no_circular(origin, destination, requirement)
   end
