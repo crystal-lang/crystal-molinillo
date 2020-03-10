@@ -176,7 +176,7 @@ class Molinillo::DependencyGraph(P, R)
     end
 
     path = [to]
-    while before = predecessors[to]
+    while before = predecessors[to]?
       path << before
       to = before
       break if to == from
