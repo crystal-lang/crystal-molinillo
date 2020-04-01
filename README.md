@@ -20,11 +20,15 @@ A port of [Molinillo](https://github.com/CocoaPods/Molinillo/) (generic dependen
 require "molinillo"
 ```
 
-TODO: Write usage instructions here
+This was built to be used by [Shards](https://github.com/crystal-lang/shards). Check [`MolinilloSolver`](https://github.com/crystal-lang/shards/blob/master/src/molinillo_solver.cr) for an example of integration.
 
 ## Development
 
-TODO: Write development instructions here
+This code uses a subrepository with test fixtures. Make sure you clone the repository with `--recursive` before running tests:
+
+```
+git clone --recursive https://github.com/crystal-lang/crystal-molinillo
+```
 
 ## Contributing
 
