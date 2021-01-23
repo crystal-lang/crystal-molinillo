@@ -448,7 +448,7 @@ module Molinillo
       #   unwound from
       # @return [void]
       private def filter_possibilities_after_unwind(unwind_details)
-        return unless state && !state!.possibilities.empty?
+        return if !state || state!.possibilities.empty?
 
         if unwind_details.unwinding_to_primary_requirement?
           filter_possibilities_for_primary_unwind(unwind_details)
