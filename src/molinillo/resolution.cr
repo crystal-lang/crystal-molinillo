@@ -230,9 +230,14 @@ module Molinillo
         activated.vertices.each do |_, vertex|
           next unless vertex.payload
 
-          latest_version = check_possibility_set(vertex).possibilities.reverse_each.find do |possibility|
-            vertex.requirements.all? { |req| requirement_satisfied_by?(req, activated, possibility) }
-          end
+          latest_version = check_possibility_set(vertex)
+            .possibilities
+            .reverse_each
+            .find do |possibility|
+              vertex.requirements.all? do |req|
+                requirement_satisfied_by?(req, activated, possibility)
+              end
+            end
 
           activated.set_payload(vertex.name, latest_version)
         end
