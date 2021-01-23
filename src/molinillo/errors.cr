@@ -96,7 +96,7 @@ module Molinillo
     def message_with_trees(opts = {} of Symbol => String)
       solver_name = opts.delete(:solver_name) { self.class.name.split("::").first }
       possibility_type = opts.delete(:possibility_type) { "possibility named" }
-      reduce_trees = opts.delete(:reduce_trees) { proc { |trees| trees.uniq.sort_by(&:to_s) } }
+      reduce_trees = opts.delete(:reduce_trees) { proc { |trees| trees.uniq.sort_by!(&:to_s) } }
       printable_requirement = opts.delete(:printable_requirement) { proc { |req| req.to_s } }
       additional_message_for_conflict = opts.delete(:additional_message_for_conflict) { proc { } }
       version_for_spec = opts.delete(:version_for_spec) { proc(&:to_s) }

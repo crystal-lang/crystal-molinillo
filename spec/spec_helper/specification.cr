@@ -35,7 +35,7 @@ module Molinillo
         end
 
       deps.map do |name, requirement|
-        requirements = requirement.split(',').map(&.chomp)
+        requirements = requirement.split(',').map!(&.chomp)
         Gem::Dependency.new(name, requirements).as(Gem::Dependency | TestSpecification)
       end
     end

@@ -498,7 +498,7 @@ module Molinillo
         unwinds_to_state = unused_unwind_options.select { |uw| uw.state_index == unwind_details.state_index }
         unwinds_to_state << unwind_details
 
-        primary_unwinds = unwinds_to_state.select(&.unwinding_to_primary_requirement?).uniq
+        primary_unwinds = unwinds_to_state.select(&.unwinding_to_primary_requirement?).uniq!
         parent_unwinds = unwinds_to_state.uniq - primary_unwinds
 
         allowed_possibility_sets = primary_unwinds.flat_map do |unwind|
@@ -523,7 +523,7 @@ module Molinillo
       private def binding_requirements_for_conflict(conflict)
         return [conflict.requirement] if conflict.possibility.nil?
 
-        possible_binding_requirements = conflict.requirements.values.flatten.uniq
+        possible_binding_requirements = conflict.requirements.values.flatten.uniq!
 
         # When there’s a `CircularDependency` error the conflicting requirement
         # (the one causing the circular) won’t be `conflict.requirement`
