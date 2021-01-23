@@ -131,10 +131,10 @@ module Molinillo
         #    non-primary unwinds
         def sub_dependencies_to_avoid
           @requirements_to_avoid ||=
-            requirement_trees.map do |tree|
+            requirement_trees.compact_map do |tree|
               index = tree.index(state_requirement)
               tree[index + 1] if index
-            end.compact
+            end
         end
 
         @all_requirements : Array(R)?
@@ -324,7 +324,7 @@ module Molinillo
       private def raise_error_unless_state(conflicts)
         return if state
 
-        error = conflicts.values.map(&.underlying_error).compact.first?
+        error = conflicts.values.compact_map(&.underlying_error).first?
         raise error || VersionConflict(R, S).new(conflicts, specification_provider)
       end
 
