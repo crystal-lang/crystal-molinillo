@@ -228,7 +228,7 @@ module Molinillo
 
       private def resolve_activated_specs
         activated.vertices.each do |_, vertex|
-          next unless payload = vertex.payload
+          next unless vertex.payload
 
           latest_version = check_possibility_set(vertex).possibilities.reverse_each.find do |possibility|
             vertex.requirements.all? { |req| requirement_satisfied_by?(req, activated, possibility) }
