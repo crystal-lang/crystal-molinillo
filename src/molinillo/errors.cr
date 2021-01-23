@@ -25,7 +25,7 @@ module Molinillo
     # The error message for the missing dependency, including the specifications
     # that had this dependency.
     def message
-      sources = required_by.map { |r| "`#{r}`" }.join(" and ")
+      sources = required_by.join(" and ") { |r| "`#{r}`" }
       message = "Unable to find a specification for `#{dependency}`"
       message += " depended upon by #{sources}" unless sources.empty?
       message
@@ -45,7 +45,7 @@ module Molinillo
     # @param [Array<DependencyGraph::Vertex>] vertices the vertices in the dependency
     #   that caused the error
     def initialize(@vertices)
-      super "There is a circular dependency between #{vertices.map(&.name).join(" and ")}"
+      super "There is a circular dependency between #{vertices.join(" and ", &.name)}"
       # @dependencies = vertices.map { |vertex| vertex.payload.possibilities.last }.to_set
     end
   end
@@ -74,7 +74,7 @@ module Molinillo
       end
 
       super "Unable to satisfy the following requirements:\n\n" \
-            "#{pairs.map { |r, d| "- `#{r}` required by `#{d}`" }.join("\n")}"
+            "#{pairs.join('\n') { |r, d| "- `#{r}` required by `#{d}`" }}"
 
       @conflicts = conflicts
       @specification_provider = specification_provider
@@ -116,7 +116,7 @@ module Molinillo
         o << %(  In #{name_for_explicit_dependency_source}:\n)
         trees = reduce_trees.call(conflict.requirement_trees)
 
-        o << trees.map do |tree|
+        o << trees.join('\n') do |tree|
           t = "".dup
           depth = 2
           tree.each do |req|
@@ -131,7 +131,7 @@ module Molinillo
             depth += 1
           end
           t
-        end.join("\n")
+        end
 
         additional_message_for_conflict.call(o, name, conflict)
 
