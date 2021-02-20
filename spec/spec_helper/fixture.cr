@@ -1,20 +1,20 @@
 require "json"
 
 class Molinillo::Fixture
-  class Dependency
-    JSON.mapping(
-      name: String,
-      version: String,
-      dependencies: Array(Dependency)
-    )
-  end
+  include JSON::Serializable
 
-  JSON.mapping(
-    name: String,
-    index: String?,
-    requested: Hash(String, String),
-    base: Array(Dependency),
-    resolved: Array(Dependency),
-    conflicts: Array(String)
-  )
+  property name : String
+  property index : String?
+  property requested : Hash(String, String)
+  property base : Array(Dependency)
+  property resolved : Array(Dependency)
+  property conflicts : Array(String)
+end
+
+class Molinillo::Fixture::Dependency
+  include JSON::Serializable
+
+  property name : String
+  property version : String
+  property dependencies : Array(Dependency)
 end
