@@ -24,19 +24,19 @@ module Molinillo
         if parser.kind.begin_object?
           Hash(String, String).new(parser)
         else
-          Hash(String, String).new.tap do |deps|
+          Hash(String, String).new.tap do |hash|
             parser.read_array do
               parser.read_begin_array
               key = parser.read_string
               value = parser.read_string
               parser.read_end_array
-              deps[key] = value
+              hash[key] = value
             end
           end
         end
 
       deps.map do |name, requirement|
-        requirements = requirement.split(',').map(&.chomp)
+        requirements = requirement.split(',').map!(&.chomp)
         Gem::Dependency.new(name, requirements).as(Gem::Dependency | TestSpecification)
       end
     end
