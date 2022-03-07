@@ -1,5 +1,4 @@
 require "json"
-require "json_mapping"
 
 module Molinillo
   class TestSpecification
