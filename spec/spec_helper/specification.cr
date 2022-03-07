@@ -3,11 +3,12 @@ require "json_mapping"
 
 module Molinillo
   class TestSpecification
-    JSON.mapping(
-      name: String,
-      version: String,
-      dependencies: {type: Array(Gem::Dependency | TestSpecification), converter: DepConverter}
-    )
+    include JSON::Serializable
+
+    property name : String
+    property version : String
+    @[JSON::Field(converter: Molinillo::DepConverter)]
+    property dependencies : Array(Gem::Dependency | TestSpecification)
 
     def to_s(io)
       io << "#{name} (#{version})"
