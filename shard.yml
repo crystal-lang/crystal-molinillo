@@ -4,6 +4,10 @@ version: 0.1.0
 authors:
   - Juan Wajnerman <waj@manas.tech>
 
+development_dependencies:
+  json_mapping:
+    github: crystal-lang/json_mapping.cr
+
 crystal: 0.32.1
 
 license: MIT

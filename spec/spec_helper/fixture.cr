@@ -1,4 +1,5 @@
 require "json"
+require "json_mapping"
 
 class Molinillo::Fixture
   class Dependency
