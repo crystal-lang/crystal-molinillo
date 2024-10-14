@@ -674,7 +674,7 @@ module Molinillo
       # @param [Integer] depth the depth of the {#states} stack
       # @param [Proc] block a block that yields a {#to_s}
       # @return [void]
-      private def debug(depth = 0)
+      private def debug(depth = 0, &)
         resolver_ui.debug(depth) { yield }
       end
 
